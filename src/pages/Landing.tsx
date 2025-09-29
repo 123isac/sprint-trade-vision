@@ -1,9 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { TrendingUp, BarChart3, Zap, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { initiateDerivLogin } from "@/lib/deriv-auth";
+import { useDerivAuth } from "@/hooks/useDerivAuth";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useDerivAuth();
+
+  const handleLogin = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      initiateDerivLogin();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,9 +48,9 @@ const Landing = () => {
               <Button 
                 size="lg" 
                 className="text-lg px-8 glow-primary hover:glow-primary transition-all"
-                onClick={() => navigate('/dashboard')}
+                onClick={handleLogin}
               >
-                Login via Deriv
+                {isAuthenticated ? 'Open Dashboard' : 'Login via Deriv'}
               </Button>
               <Button 
                 size="lg" 

@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { 
   LayoutDashboard, 
@@ -10,39 +9,81 @@ import {
   Settings,
   TrendingUp,
   Play,
-  Pause,
-  Square
+  Square,
+  LogOut
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useDerivAuth } from "@/hooks/useDerivAuth";
+import { initiateDerivLogin } from "@/lib/deriv-auth";
 import Analysis from "@/components/Analysis";
+import Bots from "./Bots";
+import TradeJournal from "./TradeJournal";
+import SettingsPage from "./Settings";
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("analysis");
-  const [accountType, setAccountType] = useState<"demo" | "real">("demo");
-  const [balance] = useState(10000);
-  const [botStatus, setBotStatus] = useState<"stopped" | "running" | "paused">("stopped");
+  const navigate = useNavigate();
+  const { activeToken, isAuthenticated, switchAccount, logout } = useDerivAuth();
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [botStatus, setBotStatus] = useState<"stopped" | "running">("stopped");
+
+  // Redirect to landing if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const accountType = activeToken?.accountType || 'demo';
+  const balance = activeToken?.balance || 0;
+  const loginId = activeToken?.loginId || 'Not connected';
 
   const toggleAccountType = () => {
+    if (!isAuthenticated || !activeToken) {
+      initiateDerivLogin();
+      return;
+    }
+    
     if (accountType === "demo") {
       const confirmed = window.confirm(
         "⚠️ Switch to REAL account? Real money will be at risk."
       );
-      if (confirmed) setAccountType("real");
-    } else {
-      setAccountType("demo");
+      if (confirmed) {
+        // Find real account if available
+        // For now just show alert
+        alert("Real account switching coming soon. Add more accounts in Settings.");
+      }
     }
   };
+
+  const handleLogout = () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (confirmed) {
+      logout();
+      navigate('/');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 border-r border-border gradient-card flex flex-col">
         <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-primary" />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              TradeSprint
-            </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-primary" />
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                TradeSprint
+              </span>
+            </div>
+            <Button size="sm" variant="ghost" onClick={handleLogout}>
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
+          <p className="text-xs text-muted-foreground mt-2">{loginId}</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-2">
@@ -109,28 +150,28 @@ const Dashboard = () => {
 
             {/* Bot Controls */}
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant={botStatus === "running" ? "default" : "outline"}
-                onClick={() => setBotStatus(botStatus === "running" ? "stopped" : "running")}
-                className={botStatus === "running" ? "bg-success hover:bg-success/90" : ""}
-              >
-                {botStatus === "running" ? (
-                  <>
-                    <Square className="w-4 h-4 mr-2" />
-                    Stop Bot
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    Start Bot
-                  </>
-                )}
-              </Button>
-              {botStatus === "running" && (
-                <Button size="sm" variant="outline">
-                  <Pause className="w-4 h-4 mr-2" />
-                  Pause
+              {!isAuthenticated ? (
+                <Button onClick={initiateDerivLogin} className="glow-primary">
+                  Connect to Trade
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant={botStatus === "running" ? "default" : "outline"}
+                  onClick={() => setBotStatus(botStatus === "running" ? "stopped" : "running")}
+                  className={botStatus === "running" ? "bg-success hover:bg-success/90" : ""}
+                >
+                  {botStatus === "running" ? (
+                    <>
+                      <Square className="w-4 h-4 mr-2" />
+                      Stop Bot
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-2" />
+                      Start Bot
+                    </>
+                  )}
                 </Button>
               )}
             </div>
@@ -163,36 +204,15 @@ const Dashboard = () => {
           )}
 
           {activeTab === "bots" && (
-            <div className="max-w-7xl mx-auto">
-              <h1 className="text-3xl font-bold mb-6">Trading Bots</h1>
-              <Card className="p-6 gradient-card border-border">
-                <p className="text-muted-foreground">
-                  Strategy configuration and bot management coming soon...
-                </p>
-              </Card>
-            </div>
+            <Bots />
           )}
 
           {activeTab === "journal" && (
-            <div className="max-w-7xl mx-auto">
-              <h1 className="text-3xl font-bold mb-6">Trade Journal</h1>
-              <Card className="p-6 gradient-card border-border">
-                <p className="text-muted-foreground">
-                  Trade history and performance analytics coming soon...
-                </p>
-              </Card>
-            </div>
+            <TradeJournal />
           )}
 
           {activeTab === "settings" && (
-            <div className="max-w-7xl mx-auto">
-              <h1 className="text-3xl font-bold mb-6">Settings</h1>
-              <Card className="p-6 gradient-card border-border">
-                <p className="text-muted-foreground">
-                  Configuration and preferences coming soon...
-                </p>
-              </Card>
-            </div>
+            <SettingsPage />
           )}
         </div>
       </main>
