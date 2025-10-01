@@ -11,27 +11,31 @@ const AuthCallback = () => {
   useEffect(() => {
     const processAuth = async () => {
       try {
-        // Get tokens from URL
-        const params = new URLSearchParams(window.location.search);
+        // Get tokens from URL (support both ?query and #hash)
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashString = window.location.hash?.startsWith('#') ? window.location.hash.slice(1) : '';
+        const hashParams = new URLSearchParams(hashString);
+        const getParam = (k: string) => searchParams.get(k) || hashParams.get(k);
+
         console.log('Auth callback - Full URL:', window.location.href);
-        console.log('Auth callback - All params:', Array.from(params.entries()));
+        console.log('Auth callback - Query params:', Array.from(searchParams.entries()));
+        console.log('Auth callback - Hash params:', Array.from(hashParams.entries()));
         
-        const accounts = params.get('acct1');
-        const token1 = params.get('token1');
-        const token2 = params.get('token2');
-        const token3 = params.get('token3');
+        const accounts = getParam('acct1') || getParam('accounts');
+        const token1 = getParam('token1');
+        const token2 = getParam('token2');
+        const token3 = getParam('token3');
+        const tokenSingle = getParam('token');
 
-        console.log('Received tokens:', { accounts, token1: token1 ? 'present' : 'missing' });
-
-        if (!accounts || !token1) {
+        if (!(accounts || token1 || token2 || token3 || tokenSingle)) {
           throw new Error('No authentication tokens received');
         }
 
         setStatus('Validating tokens...');
 
-        // Parse accounts
-        const accountList = accounts.split(',');
-        const tokenList = [token1, token2, token3].filter(Boolean);
+        // Parse accounts and tokens
+        const accountList = (accounts ? accounts.split(',') : []).filter(Boolean);
+        const tokenList = [token1, token2, token3, tokenSingle].filter(Boolean) as string[];
 
         const ws = createDerivWS();
 
