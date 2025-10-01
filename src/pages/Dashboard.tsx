@@ -22,16 +22,16 @@ import SettingsPage from "./Settings";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { activeToken, isAuthenticated, switchAccount, logout } = useDerivAuth();
+  const { activeToken, isAuthenticated, switchAccount, logout, isLoading } = useDerivAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [botStatus, setBotStatus] = useState<"stopped" | "running">("stopped");
 
-  // Redirect to landing if not authenticated
+  // Redirect to landing if not authenticated (wait until auth state is loaded)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isLoading, isAuthenticated, navigate]);
 
   const accountType = activeToken?.accountType || 'demo';
   const balance = activeToken?.balance || 0;

@@ -5,6 +5,7 @@ export const useDerivAuth = () => {
   const [tokens, setTokens] = useState<DerivToken[]>([]);
   const [activeToken, setActiveTokenState] = useState<DerivToken | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadedTokens = getTokens();
@@ -13,6 +14,7 @@ export const useDerivAuth = () => {
     setTokens(loadedTokens);
     setActiveTokenState(loadedActiveToken);
     setIsAuthenticated(!!loadedActiveToken);
+    setIsLoading(false);
   }, []);
 
   const switchAccount = (token: DerivToken) => {
@@ -32,6 +34,7 @@ export const useDerivAuth = () => {
     tokens,
     activeToken,
     isAuthenticated,
+    isLoading,
     switchAccount,
     logout
   };
