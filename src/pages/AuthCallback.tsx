@@ -31,7 +31,10 @@ const AuthCallback = () => {
           throw new Error('No authentication tokens received');
         }
 
-        setStatus('Validating tokens...');
+        // Clear tokens from URL immediately
+        window.history.replaceState({}, document.title, '/auth-callback');
+
+        setStatus('Loading... Configuring your account');
 
         // Parse accounts and tokens
         const accountList = (accounts ? accounts.split(',') : []).filter(Boolean);
@@ -80,10 +83,10 @@ const AuthCallback = () => {
 
         ws.close();
 
-        setStatus('Authentication successful! Redirecting...');
+        setStatus('Configuration complete! Redirecting to dashboard...');
         setTimeout(() => {
           navigate('/dashboard');
-        }, 1000);
+        }, 500);
 
       } catch (error) {
         console.error('Authentication error:', error);
