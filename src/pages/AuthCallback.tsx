@@ -13,10 +13,15 @@ const AuthCallback = () => {
       try {
         // Get tokens from URL
         const params = new URLSearchParams(window.location.search);
+        console.log('Auth callback - Full URL:', window.location.href);
+        console.log('Auth callback - All params:', Array.from(params.entries()));
+        
         const accounts = params.get('acct1');
         const token1 = params.get('token1');
         const token2 = params.get('token2');
         const token3 = params.get('token3');
+
+        console.log('Received tokens:', { accounts, token1: token1 ? 'present' : 'missing' });
 
         if (!accounts || !token1) {
           throw new Error('No authentication tokens received');

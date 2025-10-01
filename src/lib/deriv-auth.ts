@@ -14,7 +14,8 @@ export interface DerivToken {
 // OAuth Login
 export const initiateDerivLogin = () => {
   const redirectUri = `${window.location.origin}/auth-callback`;
-  const authUrl = `${DERIV_OAUTH_URL}?app_id=${APP_ID}&l=EN&brand=deriv`;
+  const authUrl = `${DERIV_OAUTH_URL}?app_id=${APP_ID}&l=EN&brand=deriv&redirect_uri=${encodeURIComponent(redirectUri)}`;
+  console.log('Redirecting to Deriv OAuth:', authUrl);
   window.location.href = authUrl;
 };
 
